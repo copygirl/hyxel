@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [{
+    "name": ".NET Core Launch",
+    "type": "coreclr",
+    "request": "launch",
+    "preLaunchTask": "build",
+    
+    "cwd": "${workspaceFolder}",
+    "program": "${workspaceFolder}/Hyxel/bin/Debug/netcoreapp2.1/hyxel.dll",
+    "args": [],
+    
+    "console": "internalConsole",
+    "internalConsoleOptions": "openOnSessionStart",
+    "stopAtEntry": false,
+  }]
+}
