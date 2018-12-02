@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
+
 using Hyxel.SDL;
+using Hyxel.Shapes;
 
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_WindowFlags;
@@ -42,6 +44,17 @@ namespace Hyxel
       
       var cameraPos = new Vector4(0, 0, 0, 0);
       
+      var circles = new Hypersphere[8];
+      var rnd     = new Random(1);
+      for (int i = 0; i < circles.Length; i++) {
+        var w = ((float)rnd.NextDouble() - 0.5f) * 10;
+        var x = ((float)rnd.NextDouble() - 0.5f) * 24;
+        var y = ((float)rnd.NextDouble() - 0.5f) * 24;
+        var z = ((float)rnd.NextDouble() - 0.5f) * 24;
+        var r = 4 + (float)rnd.NextDouble() * 2;
+        circles[i] = new Hypersphere(Vector4.Forward * 16 + new Vector4(w, x, y, z), r);
+      }
+      
       SDL_Event ev;
       while (_running) {
         
@@ -66,17 +79,25 @@ namespace Hyxel
           Direction = Vector4.Forward * FOCAL_LENGTH,
         };
         
-        var circlePos    = Vector4.Forward * 10;
-        var circleRadius = 5.0f;
-        
         surface.Lock();
         for (var x = 0; x < WINDOW_WIDTH; x++) {
           for (var y = 0; y < WINDOW_HEIGHT; y++) {
             ray.Direction.X =   x - WINDOW_WIDTH  / 2;
             ray.Direction.Z = -(y - WINDOW_HEIGHT / 2);
             
-            if (IntersectHypersphere(ray, circlePos, circleRadius, out var hit, out var normal))
+            float? tMin    = null;
+            int foundIndex = -1;
+            for (var i = 0; i < circles.Length; i++) {
+              if ((circles[i].Intersect(ray) is float tCur) && !(tCur > tMin)) {
+                tMin       = tCur;
+                foundIndex = i;
+              }
+            }
+            if (tMin is float t) {
+              var hit    = ray.Direction * t;
+              var normal = circles[foundIndex].CalculateNormal(hit);
               surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
+            }
           }
         }
         surface.Unlock();
@@ -88,44 +109,6 @@ namespace Hyxel
       SDL_DestroyWindow(window);
       
       SDL_Quit();
-    }
-    
-    bool IntersectHypersphere(in Ray ray, in Vector4 center, in float radius,
-                              out Vector4 hit, out Vector4 normal)
-    {
-      var l = ray.Origin - center;
-      var a = ray.Direction.Dot(ray.Direction);
-      var b = 2 * ray.Direction.Dot(l);
-      var c = l.Dot(l) - radius * radius;
-      
-      if (SolveQuadratic(a, b, c, out var t0, out var t1) && ((t0 >= 0) || (t1 >= 0))) {
-        var t  = (t0 >= 0) ? t0 : t1;
-        hit    = ray.Origin + ray.Direction * t;
-        normal = (center - hit).Normalize();
-        return true;
-      } else {
-        hit    = Vector4.Zero;
-        normal = Vector4.Zero;
-        return false;
-      }
-    }
-    
-    bool SolveQuadratic(in float a, in float b, in float c, out float x0, out float x1)
-    {
-      x0 = x1 = 0;
-      var discr = b * b - 4 * a * c;
-      if (discr < 0) return false;
-      else if (discr == 0) x0 = x1 = b / a / -2;
-      else {
-        var q = (b > 0)
-          ? (b + MathF.Sqrt(discr)) / -2
-          : (b - MathF.Sqrt(discr)) / -2;
-        x0 = q / a;
-        x1 = c / q;
-        if (x0 > x1) // Swap x0 and x1.
-          (x0, x1) = (x1, x0);
-      }
-      return true;
     }
   }
 }
