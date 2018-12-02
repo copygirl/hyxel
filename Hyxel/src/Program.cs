@@ -70,7 +70,7 @@ namespace Hyxel
           Direction = new Vector4(0, 0, 0, FOCAL_LENGTH),
         };
         
-        var circlePos    = new Vector4(0, 0, 0, 20);
+        var circlePos    = new Vector4(0, 0, 0, 10);
         var circleRadius = 5.0f;
         
         surface.Lock();
@@ -79,8 +79,8 @@ namespace Hyxel
             ray.Direction.X = x - WINDOW_WIDTH  / 2;
             ray.Direction.Y = y - WINDOW_HEIGHT / 2;
             
-            if (IntersectHypersphere(ray, circlePos, circleRadius, out var _))
-              surface.PutPixel(x, y, Color.Black);
+            if (IntersectHypersphere(ray, circlePos, circleRadius, out var hit, out var normal))
+              surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
           }
         }
         surface.Unlock();
@@ -95,19 +95,23 @@ namespace Hyxel
     }
     
     bool IntersectHypersphere(in Ray ray, in Vector4 center, in float radius,
-                              out Vector4 hit/*, out Vector4 normal*/)
+                              out Vector4 hit, out Vector4 normal)
     {
-      hit = Vector4.Zero;
-      
       var l = ray.Origin - center;
       var a = ray.Direction.Dot(ray.Direction);
       var b = 2 * ray.Direction.Dot(l);
       var c = l.Dot(l) - radius * radius;
       
-      if (!SolveQuadratic(a, b, c, out var t, out var _)) return false;
-      hit = ray.Origin + ray.Direction.Normalize() * t;
-      
-      return true;
+      if (SolveQuadratic(a, b, c, out var t0, out var t1) && ((t0 >= 0) || (t1 >= 0))) {
+        var t  = (t0 >= 0) ? t0 : t1;
+        hit    = ray.Origin + ray.Direction * t;
+        normal = (center - hit).Normalize();
+        return true;
+      } else {
+        hit    = Vector4.Zero;
+        normal = Vector4.Zero;
+        return false;
+      }
     }
     
     bool SolveQuadratic(in float a, in float b, in float c, out float x0, out float x1)

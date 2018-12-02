@@ -32,17 +32,17 @@ namespace Hyxel
                   (byte)((argb >>  8) & 0xFF),
                   (byte)((argb >>  0) & 0xFF));
     
-    public uint ToARGB() => (uint)(Math.Clamp(Alpha, 0.0, 1.0) * 255) << 24
-                          | (uint)(Math.Clamp(Red  , 0.0, 1.0) * 255) << 16
-                          | (uint)(Math.Clamp(Green, 0.0, 1.0) * 255) <<  8
-                          | (uint)(Math.Clamp(Blue , 0.0, 1.0) * 255);
+    public uint ToARGB() => (uint)(Math.Clamp(Alpha, 0.0, 1.0) * 0xFF) << 24
+                          | (uint)(Math.Clamp(Red  , 0.0, 1.0) * 0xFF) << 16
+                          | (uint)(Math.Clamp(Green, 0.0, 1.0) * 0xFF) <<  8
+                          | (uint)(Math.Clamp(Blue , 0.0, 1.0) * 0xFF);
     
     public void ToARGB(out byte a, out byte r, out byte g, out byte b)
     {
-      a = (byte)(Math.Clamp(Alpha, 0.0, 1.0) * 255);
-      r = (byte)(Math.Clamp(Red  , 0.0, 1.0) * 255);
-      g = (byte)(Math.Clamp(Green, 0.0, 1.0) * 255);
-      b = (byte)(Math.Clamp(Blue , 0.0, 1.0) * 255);
+      a = (byte)(Math.Clamp(Alpha, 0.0, 1.0) * 0xFF);
+      r = (byte)(Math.Clamp(Red  , 0.0, 1.0) * 0xFF);
+      g = (byte)(Math.Clamp(Green, 0.0, 1.0) * 0xFF);
+      b = (byte)(Math.Clamp(Blue , 0.0, 1.0) * 0xFF);
     }
     
     

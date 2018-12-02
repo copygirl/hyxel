@@ -16,13 +16,12 @@ namespace Hyxel.SDL
     
     readonly IntPtr _ptr;
     
-    public uint   Flags  => unchecked((uint)Marshal.ReadInt32(_ptr, FLAGS_OFFSET));
-    public IntPtr Format => Marshal.ReadIntPtr(_ptr, FORMAT_OFFSET);
-    public int    Width  => Marshal.ReadInt32(_ptr, WIDTH_OFFSET);
-    public int    Height => Marshal.ReadInt32(_ptr, HEIGHT_OFFSET);
-    public int    Pitch  => Marshal.ReadInt32(_ptr, PITCH_OFFSET);
-    public IntPtr Pixels => Marshal.ReadIntPtr(_ptr, PIXELS_OFFSET);
-    
+    public uint           Flags  => unchecked((uint)Marshal.ReadInt32(this, FLAGS_OFFSET));
+    public SdlPixelFormat Format => new SdlPixelFormat(Marshal.ReadIntPtr(this, FORMAT_OFFSET));
+    public int            Width  => Marshal.ReadInt32(this, WIDTH_OFFSET);
+    public int            Height => Marshal.ReadInt32(this, HEIGHT_OFFSET);
+    public int            Pitch  => Marshal.ReadInt32(this, PITCH_OFFSET);
+    public IntPtr         Pixels => Marshal.ReadIntPtr(this, PIXELS_OFFSET);
     // public IntPtr userdata; // void*
     // public int locked;
     // public IntPtr lock_data; // void*
@@ -31,6 +30,18 @@ namespace Hyxel.SDL
     // public int refcount;
     
     public bool MustLock => SDL_MUSTLOCK(this);
+    
+    
+    public Color this[int x, int y] {
+      get { unsafe {
+        if (!TryGetPointer(x, y, out var p)) return Color.Transparent;
+        return Format.Map(*p & (~0u << Format.BitsPerPixel));
+      } }
+      set { unsafe {
+        if (!TryGetPointer(x, y, out var p)) return;
+        *p = *p & ~(~0u << Format.BitsPerPixel) | Format.Map(value);
+      } }
+    }
     
     
     public SdlSurface(IntPtr ptr) => _ptr = ptr;
@@ -43,13 +54,15 @@ namespace Hyxel.SDL
     public void Unlock() { if (MustLock) SDL_UnlockSurface(this); }
     
     
-    public void PutPixel(int x, int y, Color color)
+    unsafe bool TryGetPointer(int x, int y, out uint* pointer)
     {
-      color.ToARGB(out var _, out var r, out var g, out var b);
-      unsafe
-      {
-        var p = (uint*)Pixels + (y * Pitch / sizeof(uint)) + x;
-        *p = SDL_MapRGB(Format, r, g, b);
+      if ((x >= 0) && (x < Width) && (y >= 0) && (y < Height)) {
+        // FIXME: This might be problematic for pixel formats that aren't 32 bits?
+        pointer = (uint*)Pixels + (y * Pitch / Format.BytesPerPixel) + x;
+        return true;
+      } else {
+        pointer = null;
+        return false;
       }
     }
   }
