@@ -14,9 +14,9 @@ namespace Hyxel
     const int WINDOW_WIDTH  = 1200;
     const int WINDOW_HEIGHT = 750;
     
-    const uint BACKGROUND_COLOR = 0xFF182848;
-    
     const float FOCAL_LENGTH = WINDOW_HEIGHT / 2.0f;
+    
+    static readonly Color BackgroundColor = Color.FromARGB(0xFF182848);
     
     bool _running = true;
     
@@ -40,10 +40,6 @@ namespace Hyxel
       
       var surface = new SdlSurface(SDL_GetWindowSurface(window));
       
-      var r = (byte)((BACKGROUND_COLOR >> 16) & 0xFF);
-      var g = (byte)((BACKGROUND_COLOR >>  8) & 0xFF);
-      var b = (byte)((BACKGROUND_COLOR >>  0) & 0xFF);
-      
       var cameraPos = new Vector4(0, 0, 0, 0);
       
       SDL_Event ev;
@@ -63,7 +59,7 @@ namespace Hyxel
           }
         }
         
-        SDL_FillRect(surface, IntPtr.Zero, SDL_MapRGB(surface.Format, r, g, b));
+        SDL_FillRect(surface, IntPtr.Zero, surface.Format.Map(BackgroundColor));
         
         var ray = new Ray {
           Origin    = cameraPos,
