@@ -12,6 +12,13 @@ namespace Hyxel
     public static readonly Vector4 UnitY = new Vector4(0, 0, 1, 0);
     public static readonly Vector4 UnitZ = new Vector4(0, 0, 0, 1);
     
+    public static readonly Vector4 Right   =  UnitX;
+    public static readonly Vector4 Left    = -UnitX;
+    public static readonly Vector4 Forward =  UnitY;
+    public static readonly Vector4 Back    = -UnitY;
+    public static readonly Vector4 Up      =  UnitZ;
+    public static readonly Vector4 Down    = -UnitZ;
+    
     
     public float W, X, Y, Z;
     

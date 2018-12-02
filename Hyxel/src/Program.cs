@@ -67,17 +67,17 @@ namespace Hyxel
         
         var ray = new Ray {
           Origin    = cameraPos,
-          Direction = new Vector4(0, 0, 0, FOCAL_LENGTH),
+          Direction = Vector4.Forward * FOCAL_LENGTH,
         };
         
-        var circlePos    = new Vector4(0, 0, 0, 10);
+        var circlePos    = Vector4.Forward * 10;
         var circleRadius = 5.0f;
         
         surface.Lock();
         for (var x = 0; x < WINDOW_WIDTH; x++) {
           for (var y = 0; y < WINDOW_HEIGHT; y++) {
-            ray.Direction.X = x - WINDOW_WIDTH  / 2;
-            ray.Direction.Y = y - WINDOW_HEIGHT / 2;
+            ray.Direction.X =   x - WINDOW_WIDTH  / 2;
+            ray.Direction.Z = -(y - WINDOW_HEIGHT / 2);
             
             if (IntersectHypersphere(ray, circlePos, circleRadius, out var hit, out var normal))
               surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
