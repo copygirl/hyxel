@@ -5,7 +5,7 @@ using static SDL2.SDL;
 
 namespace Hyxel.SDL
 {
-  public struct SdlSurface
+  public class SdlSurface
   {
     static readonly int FLAGS_OFFSET  = (int)Marshal.OffsetOf<SDL_Surface>("flags");
     static readonly int FORMAT_OFFSET = (int)Marshal.OffsetOf<SDL_Surface>("format");
