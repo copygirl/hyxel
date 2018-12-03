@@ -1,11 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Hyxel.SDL;
 using Hyxel.Shapes;
-
-using static SDL2.SDL;
 
 namespace Hyxel
 {

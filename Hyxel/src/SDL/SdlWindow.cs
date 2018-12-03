@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-
-using Hyxel.Shapes;
 
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_WindowFlags;
@@ -33,22 +30,18 @@ namespace Hyxel.SDL
     
     public SdlWindow(int width, int height)
     {
-      Width  = width;
-      Height = height;
-      
-      if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        Console.Error.WriteLine("Could not initialize SDL: {0}", SDL_GetError());
-        return;
-      }
+      if (SDL_Init(SDL_INIT_VIDEO) < 0) throw new SdlException(
+        $"Could not initialize SDL: { SDL_GetError() }");
       
       _ptr = SDL_CreateWindow("Hyxel",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        Width, Height, SDL_WINDOW_SHOWN);
-      if (_ptr == IntPtr.Zero) {
-        Console.Error.WriteLine("Couldn't create window: {0}", SDL_GetError());
-        return;
-      }
+        width, height, SDL_WINDOW_SHOWN);
       
+      if (_ptr == IntPtr.Zero) throw new SdlException(
+        $"Couldn't create window: { SDL_GetError() }");
+      
+      Width   = width;
+      Height  = height;
       Surface = new SdlSurface(SDL_GetWindowSurface(_ptr));
     }
     
@@ -58,6 +51,7 @@ namespace Hyxel.SDL
       while (Running) {
         Update();
         Render();
+        SDL_Delay(30);
       }
       SDL_DestroyWindow(_ptr);
       SDL_Quit();
@@ -93,7 +87,6 @@ namespace Hyxel.SDL
       Surface.Unlock();
       
       SDL_UpdateWindowSurface(_ptr);
-      SDL_Delay(30);
     }
   }
 }
