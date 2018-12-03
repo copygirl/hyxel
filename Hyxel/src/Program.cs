@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using Hyxel.SDL;
 using Hyxel.Shapes;
@@ -13,8 +14,8 @@ namespace Hyxel
 {
   class Program
   {
-    const int WINDOW_WIDTH  = 1200;
-    const int WINDOW_HEIGHT = 750;
+    const int WINDOW_WIDTH  = 800;
+    const int WINDOW_HEIGHT = 500;
     
     const float FOCAL_LENGTH = WINDOW_HEIGHT / 2.0f;
     
@@ -74,16 +75,17 @@ namespace Hyxel
         
         SDL_FillRect(surface, IntPtr.Zero, surface.MapColor(BackgroundColor));
         
-        var ray = new Ray {
-          Origin    = cameraPos,
-          Direction = Vector4.Forward * FOCAL_LENGTH,
-        };
-        
         surface.Lock();
-        for (var x = 0; x < WINDOW_WIDTH; x++) {
+        Parallel.For(0, WINDOW_WIDTH, x => {
+          var ray = new Ray {
+            Origin    = cameraPos,
+            Direction = Vector4.Forward * FOCAL_LENGTH,
+          };
+          ray.Direction.X = x - WINDOW_WIDTH / 2;
+          ray.Direction.Z = WINDOW_HEIGHT / 2;
+          
           for (var y = 0; y < WINDOW_HEIGHT; y++) {
-            ray.Direction.X =   x - WINDOW_WIDTH  / 2;
-            ray.Direction.Z = -(y - WINDOW_HEIGHT / 2);
+            ray.Direction.Z--;
             
             float? tMin    = null;
             int foundIndex = -1;
@@ -93,13 +95,14 @@ namespace Hyxel
                 foundIndex = i;
               }
             }
+            
             if (tMin is float t) {
               var hit    = ray.Direction * t;
               var normal = circles[foundIndex].CalculateNormal(hit);
               surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
             }
           }
-        }
+        });
         surface.Unlock();
         
         SDL_UpdateWindowSurface(window);
