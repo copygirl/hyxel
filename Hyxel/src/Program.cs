@@ -72,7 +72,7 @@ namespace Hyxel
           }
         }
         
-        SDL_FillRect(surface, IntPtr.Zero, surface.Format.Map(BackgroundColor));
+        SDL_FillRect(surface, IntPtr.Zero, surface.MapColor(BackgroundColor));
         
         var ray = new Ray {
           Origin    = cameraPos,
