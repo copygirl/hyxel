@@ -1,6 +1,6 @@
 using System;
 
-namespace Hyxel.Shapes
+namespace Hyxel.Maths.Shapes
 {
   public struct Hypersphere
   {

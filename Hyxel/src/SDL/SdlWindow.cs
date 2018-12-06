@@ -1,5 +1,7 @@
 using System;
 
+using Hyxel.Maths;
+
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_WindowFlags;
 using static SDL2.SDL.SDL_EventType;
@@ -12,8 +14,9 @@ namespace Hyxel.SDL
     readonly IntPtr _ptr;
     
     
-    public int Width  { get; }
-    public int Height { get; }
+    public Size Size { get; }
+    public int Width  => Size.Width;
+    public int Height => Size.Height;
     
     public SdlSurface Surface { get; }
     
@@ -40,8 +43,7 @@ namespace Hyxel.SDL
       if (_ptr == IntPtr.Zero) throw new SdlException(
         $"Couldn't create window: { SDL_GetError() }");
       
-      Width   = width;
-      Height  = height;
+      Size    = new Size(width, height);
       Surface = new SdlSurface(SDL_GetWindowSurface(_ptr));
     }
     

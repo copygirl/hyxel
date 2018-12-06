@@ -1,6 +1,6 @@
 using System;
 
-namespace Hyxel
+namespace Hyxel.Maths
 {
   public struct Vector4
   {
@@ -57,6 +57,6 @@ namespace Hyxel
     
     
     public override string ToString()
-      => $"{W}:{X}:{Y}:{Z}";
+      => $"Vector4(w={W},x={X},y={Y},z={Z})";
   }
 }

@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
 
+using Hyxel.Maths;
+using Hyxel.Maths.Shapes;
 using Hyxel.SDL;
-using Hyxel.Shapes;
 
 namespace Hyxel
 {
@@ -28,10 +29,7 @@ namespace Hyxel
       
       window.OnRender += () => {
         Parallel.For(0, window.Width, x => {
-          var ray = new Ray {
-            Origin    = cameraPos,
-            Direction = Vector4.Forward * focalLength,
-          };
+          var ray = new Ray(cameraPos, Vector4.Forward * focalLength);
           ray.Direction.X = x - window.Width / 2;
           ray.Direction.Z = window.Height / 2;
           
