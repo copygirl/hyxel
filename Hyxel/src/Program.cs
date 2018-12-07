@@ -27,6 +27,12 @@ namespace Hyxel
         circles[i] = new Hypersphere(Vector4.Forward * 16 + new Vector4(w, x, y, z), r);
       }
       
+      window.OnUpdate += () => {
+        if (window.MouseRelativeMode)
+          cameraPos += Vector4.Right * window.MouseMotion.X / 50.0f
+                    +  Vector4.Down  * window.MouseMotion.Y / 50.0f;
+      };
+      
       window.OnRender += () => {
         Parallel.For(0, window.Width, x => {
           var ray = new Ray(cameraPos, Vector4.Forward * focalLength);
