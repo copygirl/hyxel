@@ -52,7 +52,7 @@ namespace Hyxel
             }
             
             if (tMin is float t) {
-              var hit    = ray.Direction * t;
+              var hit    = ray.Origin + ray.Direction * t;
               var normal = circles[foundIndex].CalculateNormal(hit);
               window.Surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
             }
