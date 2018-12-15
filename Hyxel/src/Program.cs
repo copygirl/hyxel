@@ -23,12 +23,13 @@ namespace Hyxel
       var circles = new Hypersphere[8];
       var rnd     = new Random(1);
       for (int i = 0; i < circles.Length; i++) {
-        var w = ((float)rnd.NextDouble() - 0.5f) * 10;
-        var x = ((float)rnd.NextDouble() - 0.5f) * 24;
-        var y = ((float)rnd.NextDouble() - 0.5f) * 24;
-        var z = ((float)rnd.NextDouble() - 0.5f) * 24;
-        var r = 4 + (float)rnd.NextDouble() * 2;
-        circles[i] = new Hypersphere(Vector4.Forward * 16 + new Vector4(w, x, y, z), r);
+        var w = rnd.Next(- 5.0f,  5.0f);
+        var x = rnd.Next(-12.0f, 12.0f);
+        var y = rnd.Next(-12.0f, 12.0f);
+        var z = rnd.Next(-12.0f, 12.0f);
+        var position = Vector4.Forward * 16 + new Vector4(w, x, y, z);
+        var radius   = rnd.Next(4.0f, 6.0f);
+        circles[i] = new Hypersphere(position, radius);
       }
       
       window.OnUpdate += () => {
