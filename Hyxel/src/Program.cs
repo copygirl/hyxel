@@ -5,6 +5,9 @@ using Hyxel.Maths;
 using Hyxel.Maths.Shapes;
 using Hyxel.SDL;
 
+using static System.MathF;
+using static Hyxel.Maths.MathHelper;
+
 namespace Hyxel
 {
   class Program
@@ -13,7 +16,8 @@ namespace Hyxel
     {
       var window = new SdlWindow(800, 500);
       
-      var cameraPos   = new Vector4(0, 0, 0, 0);
+      var cameraPos   = Vector4.Zero;
+      var cameraRot   = Matrix4.Identity;
       var focalLength = window.Height / 2.0f;
       
       var circles = new Hypersphere[8];
@@ -28,19 +32,38 @@ namespace Hyxel
       }
       
       window.OnUpdate += () => {
-        if (window.MouseRelativeMode)
-          cameraPos += Vector4.Right * window.MouseMotion.X / 50.0f
-                    +  Vector4.Down  * window.MouseMotion.Y / 50.0f;
+        if (window.MouseRelativeMode) {
+          var yaw   =  Deg2Rad(window.MouseMotion.X);
+          var pitch = -Deg2Rad(window.MouseMotion.Y);
+          
+          var yawRot = new Matrix4(
+            1 ,      0   ,       0   , 0 ,
+            0 , Cos(yaw) , -Sin(yaw) , 0 ,
+            0 , Sin(yaw) ,  Cos(yaw) , 0 ,
+            0 ,      0   ,       0   , 1 );
+          
+          var pitchRot = new Matrix4(
+            1 , 0 ,       0    ,        0    ,
+            0 , 1 ,       0    ,        0    ,
+            0 , 0 , Cos(pitch) , -Sin(pitch) ,
+            0 , 0 , Sin(pitch) ,  Cos(pitch) );
+          
+          cameraRot = cameraRot * pitchRot * yawRot;
+        }
       };
       
       window.OnRender += () => {
+        var forward   = cameraRot * Vector4.Forward;
+        var stepRight = cameraRot * Vector4.Right;
+        var stepDown  = cameraRot * Vector4.Down;
         Parallel.For(0, window.Width, x => {
-          var ray = new Ray(cameraPos, Vector4.Forward * focalLength);
-          ray.Direction.X = x - window.Width / 2;
-          ray.Direction.Z = window.Height / 2;
+          var ray = new Ray(cameraPos,
+            forward * focalLength
+              - stepRight * (window.Width  / 2 - x)
+              - stepDown  * (window.Height / 2    ));
           
           for (var y = 0; y < window.Height; y++) {
-            ray.Direction.Z--;
+            Vector4.Add(ref ray.Direction, stepDown);
             
             float? tMin    = null;
             int foundIndex = -1;

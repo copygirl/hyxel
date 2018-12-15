@@ -15,9 +15,9 @@ namespace Hyxel.Maths.Shapes
     public float? Intersect(in Ray ray)
     {
       var l = ray.Origin - Center;
-      var a = ray.Direction.Dot(ray.Direction);
-      var b = 2 * ray.Direction.Dot(l);
-      var c = l.Dot(l) - Radius * Radius;
+      var a = Vector4.Dot(ray.Direction, ray.Direction);
+      var b = 2 * Vector4.Dot(ray.Direction, l);
+      var c = Vector4.Dot(l, l) - Radius * Radius;
       
       return (SolveQuadratic(a, b, c, out var t0, out var t1) && ((t0 >= 0) || (t1 >= 0)))
         ? (t0 >= 0) ? t0 : t1
@@ -28,7 +28,7 @@ namespace Hyxel.Maths.Shapes
       => (hit - Center).Normalize();
     
     
-    bool SolveQuadratic(in float a, in float b, in float c, out float x0, out float x1)
+    bool SolveQuadratic(float a, float b, float c, out float x0, out float x1)
     {
       x0 = x1 = 0;
       var discr = b * b - 4 * a * c;
@@ -40,8 +40,8 @@ namespace Hyxel.Maths.Shapes
           : (b - MathF.Sqrt(discr)) / -2;
         x0 = q / a;
         x1 = c / q;
-        if (x0 > x1) // Swap x0 and x1.
-          (x0, x1) = (x1, x0);
+        if (x0 > x1)
+          (x0, x1) = (x1, x0); // Swap x0 and x1.
       }
       return true;
     }
