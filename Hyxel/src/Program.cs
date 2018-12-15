@@ -1,3 +1,5 @@
+#define PARALLEL
+
 using System;
 using System.Threading.Tasks;
 
@@ -57,7 +59,11 @@ namespace Hyxel
         var forward   = cameraRot * Vector4.Forward;
         var stepRight = cameraRot * Vector4.Right;
         var stepDown  = cameraRot * Vector4.Down;
+#if PARALLEL
         Parallel.For(0, window.Width, x => {
+#else
+        for (var x = 0; x < window.Width; x++) {
+#endif
           var ray = new Ray(cameraPos,
             forward * focalLength
               - stepRight * (window.Width  / 2 - x)
@@ -81,7 +87,10 @@ namespace Hyxel
               window.Surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
             }
           }
-        });
+        }
+#if PARALLEL
+        );
+#endif
       };
       
       window.Run();
