@@ -95,7 +95,7 @@ namespace Hyxel.SDL
           await Task.Delay(delay);
         
         delta = watch.Elapsed;
-        watch.Reset();
+        watch.Restart();
       }
     }
     
