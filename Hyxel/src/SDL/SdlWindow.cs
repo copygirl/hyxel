@@ -1,4 +1,7 @@
 using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 using Hyxel.Maths;
 
@@ -44,9 +47,9 @@ namespace Hyxel.SDL
     public Point MouseMotion { get; private set; }
     
     
-    public event Action OnUpdate;
+    public event Func<TimeSpan, Task> OnUpdate;
     
-    public event Action OnRender;
+    public event Func<TimeSpan, Task> OnRender;
     
     
     public SdlWindow(int width, int height)
@@ -66,19 +69,34 @@ namespace Hyxel.SDL
     }
     
     
-    public void Run()
+    public async Task Run()
     {
-      while (Running) {
-        Update();
-        Render();
-        SDL_Delay(30);
-      }
+      await Task.WhenAll(
+        Loop(TimeSpan.FromSeconds(1.0 / 90), Update) ,
+        Loop(TimeSpan.FromSeconds(1.0 / 30), Render) );
       SDL_DestroyWindow(_ptr);
       SDL_Quit();
     }
     
+    async Task Loop(TimeSpan frequency, Func<TimeSpan, Task> action)
+    {
+      var delta = TimeSpan.Zero;
+      var watch = new Stopwatch();
+      watch.Start();
+      while (Running) {
+        await action(delta);
+        
+        var delay = (frequency - watch.Elapsed);
+        if (delay > TimeSpan.Zero)
+          await Task.Delay(delay);
+        
+        delta = watch.Elapsed;
+        watch.Reset();
+      }
+    }
     
-    void Update()
+    
+    async Task Update(TimeSpan delta)
     {
       MouseMotion = Point.Origin;
       
@@ -121,15 +139,15 @@ namespace Hyxel.SDL
         }
       }
       
-      OnUpdate?.Invoke();
+      await InvokeAll(OnUpdate, delta);
     }
     
-    void Render()
+    async Task Render(TimeSpan delta)
     {
       SDL_FillRect(Surface, IntPtr.Zero, Surface.MapColor(BackgroundColor));
       
       Surface.Lock();
-      OnRender?.Invoke();
+      await InvokeAll(OnRender, delta);
       Surface.Unlock();
       
       SDL_UpdateWindowSurface(_ptr);
@@ -138,5 +156,12 @@ namespace Hyxel.SDL
     
     void WarpMouse(Point position)
       => SDL_WarpMouseInWindow(_ptr, position.X, position.Y);
+    
+    Task InvokeAll<T>(Func<T, Task> ev, T arg)
+      => (ev != null)
+        ? Task.WhenAll(ev.GetInvocationList()
+          .Cast<Func<T, Task>>()
+          .Select(d => d.Invoke(arg)))
+        : Task.CompletedTask;
   }
 }

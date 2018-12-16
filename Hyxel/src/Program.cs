@@ -1,6 +1,6 @@
-#define PARALLEL
-
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Hyxel.Maths;
@@ -14,13 +14,14 @@ namespace Hyxel
 {
   class Program
   {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-      var window = new SdlWindow(800, 500);
+      var window    = new SdlWindow(1280, 800);
+      var scaledown = 2;
       
       var cameraPos   = Vector4.Zero;
       var cameraRot   = Matrix4.Identity;
-      var focalLength = window.Height / 2.0f;
+      var focalLength = window.Height / 2.0f / scaledown;
       
       var circles = new Hypersphere[8];
       var rnd     = new Random(1);
@@ -34,10 +35,11 @@ namespace Hyxel
         circles[i] = new Hypersphere(position, radius);
       }
       
-      window.OnUpdate += () => {
+      window.OnUpdate += async (delta) => {
         if (window.MouseRelativeMode) {
-          var yaw   =  Deg2Rad(window.MouseMotion.X);
-          var pitch = -Deg2Rad(window.MouseMotion.Y);
+          var mouseSensitivity = 0.2f;
+          var yaw   =  Deg2Rad(window.MouseMotion.X) * mouseSensitivity;
+          var pitch = -Deg2Rad(window.MouseMotion.Y) * mouseSensitivity;
           
           var yawRot = new Matrix4(
             1 ,      0   ,       0   , 0 ,
@@ -55,45 +57,58 @@ namespace Hyxel
         }
       };
       
-      window.OnRender += () => {
+      window.OnRender += async (delta) => {
         var forward   = cameraRot * Vector4.Forward;
         var stepRight = cameraRot * Vector4.Right;
         var stepDown  = cameraRot * Vector4.Down;
-#if PARALLEL
-        Parallel.For(0, window.Width, x => {
-#else
-        for (var x = 0; x < window.Width; x++) {
-#endif
+        
+        var width  = window.Width  / scaledown;
+        var height = window.Height / scaledown;
+        
+        IEnumerable<Rectangle> SplitScreen(int size)
+        {
+          for (var x = 0; x < width; x += size)
+            for (var y = 0; y < height; y += size)
+              yield return new Rectangle(x, y, Math.Min(width, x + size), Math.Min(height, y + size));
+        }
+        
+        await Task.WhenAll(SplitScreen(32).Select(rect => Task.Run(() => {
+          var rayTmp = default(Ray);
           var ray = new Ray(cameraPos,
             forward * focalLength
-              - stepRight * (window.Width  / 2 - x)
-              - stepDown  * (window.Height / 2    ));
-          
-          for (var y = 0; y < window.Height; y++) {
-            Vector4.Add(ref ray.Direction, stepDown);
-            
-            float? tMin    = null;
-            int foundIndex = -1;
-            for (var i = 0; i < circles.Length; i++) {
-              if ((circles[i].Intersect(ray) is float tCur) && !(tCur > tMin)) {
-                tMin       = tCur;
-                foundIndex = i;
+              - stepRight * (width  / 2 - rect.Left)
+              - stepDown  * (height / 2 - rect.Top ));
+          for (var x = rect.Left; x < rect.Right; x++) {
+            Vector4.Add(ref ray.Direction, stepRight);
+            rayTmp = ray;
+            for (var y = rect.Top; y < rect.Bottom; y++) {
+              Vector4.Add(ref ray.Direction, stepDown);
+              
+              float? tMin    = null;
+              int foundIndex = -1;
+              for (var i = 0; i < circles.Length; i++) {
+                if ((circles[i].Intersect(ray) is float tCur) && !(tCur > tMin)) {
+                  tMin       = tCur;
+                  foundIndex = i;
+                }
+              }
+              
+              if (tMin is float t) {
+                var hit    = ray.Origin + ray.Direction * t;
+                var normal = circles[foundIndex].CalculateNormal(hit);
+                var color  = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
+                
+                for (var xx = 0; xx < scaledown; xx++)
+                  for (var yy = 0; yy < scaledown; yy++)
+                    window.Surface[x*scaledown + xx, y*scaledown + yy] = color;
               }
             }
-            
-            if (tMin is float t) {
-              var hit    = ray.Origin + ray.Direction * t;
-              var normal = circles[foundIndex].CalculateNormal(hit);
-              window.Surface[x, y] = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
-            }
+            ray = rayTmp;
           }
-        }
-#if PARALLEL
-        );
-#endif
+        })));
       };
       
-      window.Run();
+      await window.Run();
     }
   }
 }
