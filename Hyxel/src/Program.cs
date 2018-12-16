@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Hyxel.Input;
 using Hyxel.Maths;
 using Hyxel.Maths.Shapes;
 using Hyxel.SDL;
@@ -17,6 +18,7 @@ namespace Hyxel
     static async Task Main(string[] args)
     {
       var window    = new SdlWindow(1280, 800);
+      var controls  = new Controls(window);
       var scaledown = 2;
       
       var cameraPos   = Vector4.Zero;
@@ -38,8 +40,8 @@ namespace Hyxel
       window.OnUpdate += async (delta) => {
         if (window.MouseRelativeMode) {
           var mouseSensitivity = 0.2f;
-          var yaw   =  Deg2Rad(window.MouseMotion.X) * mouseSensitivity;
-          var pitch = -Deg2Rad(window.MouseMotion.Y) * mouseSensitivity;
+          var yaw   =  Deg2Rad(controls.MouseMotion.X) * mouseSensitivity;
+          var pitch = -Deg2Rad(controls.MouseMotion.Y) * mouseSensitivity;
           
           var yawRot = new Matrix4(
             1 ,      0   ,       0   , 0 ,
@@ -55,9 +57,10 @@ namespace Hyxel
           
           cameraRot = cameraRot * pitchRot * yawRot;
         }
+        controls.ResetMouseMotion();
       };
       
-      window.OnRender += async (delta) => {
+      window.Render += async (delta) => {
         var forward   = cameraRot * Vector4.Forward;
         var stepRight = cameraRot * Vector4.Right;
         var stepDown  = cameraRot * Vector4.Down;

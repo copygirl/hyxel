@@ -3,12 +3,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Hyxel.Input;
 using Hyxel.Maths;
 
 using static SDL2.SDL;
 using static SDL2.SDL.SDL_WindowFlags;
 using static SDL2.SDL.SDL_EventType;
-using static SDL2.SDL.SDL_Keycode;
 using static SDL2.SDL.SDL_bool;
 using static SDL2.SDL.SDL_WindowEventID;
 
@@ -44,12 +44,16 @@ namespace Hyxel.SDL
       set => SDL_SetRelativeMouseMode(value ? SDL_TRUE : SDL_FALSE);
     }
     
-    public Point MouseMotion { get; private set; }
     
+    public event Func<TimeSpan, Task> Update;
+    public event Func<TimeSpan, Task> Render;
     
-    public event Func<TimeSpan, Task> OnUpdate;
+    public event Action<MouseButton, Point> MouseButtonDown;
+    public event Action<MouseButton, Point> MouseButtonUp;
+    public event Action<Point> MouseMotion;
     
-    public event Func<TimeSpan, Task> OnRender;
+    public event Action<SDL_Keysym> KeyDown;
+    public event Action<SDL_Keysym> KeyUp;
     
     
     public SdlWindow(int width, int height)
@@ -72,8 +76,8 @@ namespace Hyxel.SDL
     public async Task Run()
     {
       await Task.WhenAll(
-        Loop(TimeSpan.FromSeconds(1.0 / 90), Update) ,
-        Loop(TimeSpan.FromSeconds(1.0 / 30), Render) );
+        Loop(TimeSpan.FromSeconds(1.0 / 90), DoUpdate) ,
+        Loop(TimeSpan.FromSeconds(1.0 / 30), DoRender) );
       SDL_DestroyWindow(_ptr);
       SDL_Quit();
     }
@@ -96,37 +100,32 @@ namespace Hyxel.SDL
     }
     
     
-    async Task Update(TimeSpan delta)
+    async Task DoUpdate(TimeSpan delta)
     {
-      MouseMotion = Point.Origin;
-      
       SDL_Event ev;
       while (SDL_PollEvent(out ev) != 0) {
         switch (ev.type) {
-          case SDL_QUIT:
-            // Quit when clicking the close window button.
-            Running = false;
-            break;
+          // Quit when clicking the close window button.
+          case SDL_QUIT: Running = false; break;
+          
           case SDL_KEYDOWN:
-            // Quit when pressing the `Escape` key.
-            if (ev.key.keysym.sym == SDLK_ESCAPE)
-              Running = false;
+            KeyDown?.Invoke(ev.key.keysym);
+            break;
+          case SDL_KEYUP:
+            KeyUp?.Invoke(ev.key.keysym);
             break;
           
           case SDL_MOUSEBUTTONDOWN:
-            if (ev.button.button == SDL_BUTTON_RIGHT)
-              MouseRelativeMode = true;
+            MouseButtonDown?.Invoke((MouseButton)ev.button.button,
+                                    new Point(ev.button.x, ev.button.y));
             break;
           case SDL_MOUSEBUTTONUP:
-            if (ev.button.button == SDL_BUTTON_RIGHT) {
-              MouseRelativeMode = false;
-              WarpMouse(_mousePosition);
-            }
+            MouseButtonUp?.Invoke((MouseButton)ev.button.button,
+                                  new Point(ev.button.x, ev.button.y));
             break;
           case SDL_MOUSEMOTION:
-            var pos = new Point(ev.motion.x, ev.motion.y);
-            if (!MouseRelativeMode) _mousePosition = pos;
-            MouseMotion += new Point(ev.motion.xrel, ev.motion.yrel);
+            if (!MouseRelativeMode) _mousePosition = new Point(ev.motion.x, ev.motion.y);
+            MouseMotion?.Invoke(new Point(ev.motion.xrel, ev.motion.yrel));
             break;
           
           case SDL_WINDOWEVENT:
@@ -139,15 +138,15 @@ namespace Hyxel.SDL
         }
       }
       
-      await InvokeAll(OnUpdate, delta);
+      await InvokeAll(Update, delta);
     }
     
-    async Task Render(TimeSpan delta)
+    async Task DoRender(TimeSpan delta)
     {
       SDL_FillRect(Surface, IntPtr.Zero, Surface.MapColor(BackgroundColor));
       
       Surface.Lock();
-      await InvokeAll(OnRender, delta);
+      await InvokeAll(Render, delta);
       Surface.Unlock();
       
       SDL_UpdateWindowSurface(_ptr);
