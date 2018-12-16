@@ -55,6 +55,9 @@ namespace Hyxel.SDL
     public event Action<SDL_Keysym> KeyDown;
     public event Action<SDL_Keysym> KeyUp;
     
+    public event Action FocusGained;
+    public event Action FocusLost;
+    
     
     public SdlWindow(int width, int height)
     {
@@ -130,8 +133,12 @@ namespace Hyxel.SDL
           
           case SDL_WINDOWEVENT:
             switch (ev.window.windowEvent) {
+              case SDL_WINDOWEVENT_FOCUS_GAINED:
+                FocusGained?.Invoke();
+                break;
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 MouseRelativeMode = false;
+                FocusLost?.Invoke();
                 break;
             }
             break;
