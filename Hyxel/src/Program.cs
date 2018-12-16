@@ -37,7 +37,7 @@ namespace Hyxel
         circles[i] = new Hypersphere(position, radius);
       }
       
-      window.OnUpdate += async (delta) => {
+      window.Update += (delta) => {
         if (window.MouseRelativeMode) {
           var mouseSensitivity = 0.2f;
           var yaw   =  Deg2Rad(controls.MouseMotion.X) * mouseSensitivity;
@@ -58,6 +58,7 @@ namespace Hyxel
           cameraRot = cameraRot * pitchRot * yawRot;
         }
         controls.ResetMouseMotion();
+        return Task.CompletedTask;
       };
       
       window.Render += async (delta) => {
