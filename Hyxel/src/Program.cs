@@ -56,6 +56,14 @@ namespace Hyxel
             0 , 0 , Sin(pitch) ,  Cos(pitch) );
           
           cameraRot = cameraRot * pitchRot * yawRot;
+          
+          var speed = 5.0f * (float)delta.TotalSeconds;
+          if (controls.Forward) cameraPos += cameraRot * Vector4.Forward * speed;
+          if (controls.Back   ) cameraPos += cameraRot * Vector4.Back    * speed;
+          if (controls.Right  ) cameraPos += cameraRot * Vector4.Right   * speed;
+          if (controls.Left   ) cameraPos += cameraRot * Vector4.Left    * speed;
+          if (controls.Up     ) cameraPos += cameraRot * Vector4.Up      * speed;
+          if (controls.Down   ) cameraPos += cameraRot * Vector4.Down    * speed;
         }
         controls.ResetMouseMotion();
         return Task.CompletedTask;

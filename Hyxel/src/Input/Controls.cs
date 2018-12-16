@@ -12,7 +12,15 @@ namespace Hyxel.Input
   {
     public SdlWindow Window { get; }
     
+    
     public Point MouseMotion { get; private set; }
+    
+    public bool Forward { get; private set; }
+    public bool Back    { get; private set; }
+    public bool Right   { get; private set; }
+    public bool Left    { get; private set; }
+    public bool Up   { get; private set; }
+    public bool Down { get; private set; }
     
     
     public Controls(SdlWindow window)
@@ -25,9 +33,11 @@ namespace Hyxel.Input
       
       window.KeyDown += OnKeyDown;
       window.KeyUp   += OnKeyUp;
+      
+      window.FocusLost += OnFocusLost;
     }
     
-    
+
     void OnMouseButtonDown(MouseButton button, Point p)
     {
       if (button == MouseButton.Right)
@@ -52,14 +62,32 @@ namespace Hyxel.Input
     
     void OnKeyDown(SDL_Keysym keysym)
     {
-      // Quit when pressing the `Escape` key.
-      if (keysym.sym == SDLK_ESCAPE)
-        Window.Running = false;
+      switch (keysym.sym) {
+        // Quit when pressing the `Escape` key.
+        case SDLK_ESCAPE: Window.Running = false; break;
+        
+        case SDLK_w: Forward = true; break;
+        case SDLK_s: Back    = true; break;
+        case SDLK_d: Right   = true; break;
+        case SDLK_a: Left    = true; break;
+        case SDLK_SPACE:  Up   = true; break;
+        case SDLK_LSHIFT: Down = true; break;
+      }
     }
     
     void OnKeyUp(SDL_Keysym keysym)
     {
-      
+      switch (keysym.sym) {
+        case SDLK_w: Forward = false; break;
+        case SDLK_s: Back    = false; break;
+        case SDLK_d: Right   = false; break;
+        case SDLK_a: Left    = false; break;
+        case SDLK_SPACE:  Up   = false; break;
+        case SDLK_LSHIFT: Down = false; break;
+      }
     }
+    
+    void OnFocusLost()
+      => Forward = Back = Right = Left = Up = Down = false;
   }
 }
