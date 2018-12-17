@@ -40,9 +40,9 @@ namespace Hyxel.Maths
       // result.MXY = Vector4.Dot(left.RowY, right.ColX);
       
       result.M00 = Vector4.Dot( left.M00,left.M01,left.M02,left.M03 , right.M00,right.M10,right.M20,right.M30 );
-      result.M00 = Vector4.Dot( left.M10,left.M11,left.M12,left.M13 , right.M00,right.M10,right.M20,right.M30 );
-      result.M00 = Vector4.Dot( left.M20,left.M21,left.M22,left.M23 , right.M00,right.M10,right.M20,right.M30 );
-      result.M00 = Vector4.Dot( left.M30,left.M31,left.M32,left.M33 , right.M00,right.M10,right.M20,right.M30 );
+      result.M01 = Vector4.Dot( left.M10,left.M11,left.M12,left.M13 , right.M00,right.M10,right.M20,right.M30 );
+      result.M02 = Vector4.Dot( left.M20,left.M21,left.M22,left.M23 , right.M00,right.M10,right.M20,right.M30 );
+      result.M03 = Vector4.Dot( left.M30,left.M31,left.M32,left.M33 , right.M00,right.M10,right.M20,right.M30 );
       
       result.M10 = Vector4.Dot( left.M00,left.M01,left.M02,left.M03 , right.M01,right.M11,right.M21,right.M31 );
       result.M11 = Vector4.Dot( left.M10,left.M11,left.M12,left.M13 , right.M01,right.M11,right.M21,right.M31 );
