@@ -15,6 +15,9 @@ namespace Hyxel.Input
     
     public Point MouseMotion { get; private set; }
     
+    public bool TraditionalMove { get; private set; }
+    public bool FourDimensionalMove { get; private set; }
+    
     public bool Forward { get; private set; }
     public bool Back    { get; private set; }
     public bool Right   { get; private set; }
@@ -40,13 +43,29 @@ namespace Hyxel.Input
 
     void OnMouseButtonDown(MouseButton button, Point p)
     {
-      if (button == MouseButton.Right)
+      switch (button) {
+        case MouseButton.Right:
+          TraditionalMove = true;
+          break;
+        case MouseButton.Left:
+          FourDimensionalMove = true;
+          break;
+      }
+      if (TraditionalMove || FourDimensionalMove)
         Window.MouseRelativeMode = true;
     }
     
     void OnMouseButtonUp(MouseButton button, Point p)
     {
-      if (button == MouseButton.Right) {
+      switch (button) {
+        case MouseButton.Right:
+          TraditionalMove = false;
+          break;
+        case MouseButton.Left:
+          FourDimensionalMove = false;
+          break;
+      }
+      if (!TraditionalMove && !FourDimensionalMove) {
         var storedPos = Window.MousePosition;
         Window.MouseRelativeMode = false;
         Window.MousePosition = storedPos;

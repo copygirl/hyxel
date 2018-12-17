@@ -39,8 +39,32 @@ namespace Hyxel
       }
       
       window.Update += (delta) => {
-        if (window.MouseRelativeMode) {
-          var mouseSensitivity = 0.2f;
+        var mouseSensitivity = 0.2f;
+        var moveSpeed = 5.0f * (float)delta.TotalSeconds;
+        
+        if (controls.FourDimensionalMove) {
+          var roll = Deg2Rad(controls.MouseMotion.X) * mouseSensitivity;
+          var w    = Deg2Rad(controls.MouseMotion.Y) * mouseSensitivity;
+          
+          var rollRot = new Matrix4(
+            1 ,       0   , 0 ,        0   ,
+            0 , Cos(roll) , 0 , -Sin(roll) ,
+            0 ,       0   , 1 ,        0   ,
+            0 , Sin(roll) , 0 ,  Cos(roll) );
+          
+          var wRot = new Matrix4(
+            Cos(w) , 0 , -Sin(w) , 0 ,
+                0  , 1 ,      0  , 0 ,
+            Sin(w) , 0 ,  Cos(w) , 0 ,
+                0  , 0 ,      0  , 1 );
+          
+          cameraRot = cameraRot * rollRot * wRot;
+          
+          if (controls.Up  ) cameraPos += cameraRot *  Vector4.UnitW * moveSpeed;
+          if (controls.Down) cameraPos += cameraRot * -Vector4.UnitW * moveSpeed;
+        }
+        
+        if (controls.TraditionalMove) {
           var yaw   =  Deg2Rad(controls.MouseMotion.X) * mouseSensitivity;
           var pitch = -Deg2Rad(controls.MouseMotion.Y) * mouseSensitivity;
           
@@ -58,14 +82,14 @@ namespace Hyxel
           
           cameraRot = cameraRot * pitchRot * yawRot;
           
-          var speed = 5.0f * (float)delta.TotalSeconds;
-          if (controls.Forward) cameraPos += cameraRot * Vector4.Forward * speed;
-          if (controls.Back   ) cameraPos += cameraRot * Vector4.Back    * speed;
-          if (controls.Right  ) cameraPos += cameraRot * Vector4.Right   * speed;
-          if (controls.Left   ) cameraPos += cameraRot * Vector4.Left    * speed;
-          if (controls.Up     ) cameraPos += cameraRot * Vector4.Up      * speed;
-          if (controls.Down   ) cameraPos += cameraRot * Vector4.Down    * speed;
+          if (controls.Forward) cameraPos += cameraRot * Vector4.Forward * moveSpeed;
+          if (controls.Back   ) cameraPos += cameraRot * Vector4.Back    * moveSpeed;
+          if (controls.Right  ) cameraPos += cameraRot * Vector4.Right   * moveSpeed;
+          if (controls.Left   ) cameraPos += cameraRot * Vector4.Left    * moveSpeed;
+          if (controls.Up     ) cameraPos += cameraRot * Vector4.Up      * moveSpeed;
+          if (controls.Down   ) cameraPos += cameraRot * Vector4.Down    * moveSpeed;
         }
+        
         controls.ResetMouseMotion();
         return Task.CompletedTask;
       };
