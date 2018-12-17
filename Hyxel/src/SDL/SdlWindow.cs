@@ -60,18 +60,20 @@ namespace Hyxel.SDL
     
     
     public SdlWindow(int width, int height)
+      : this(new Size(width, height)) {  }
+    public SdlWindow(Size size)
     {
       if (SDL_Init(SDL_INIT_VIDEO) < 0) throw new SdlException(
         $"Could not initialize SDL: { SDL_GetError() }");
       
       _ptr = SDL_CreateWindow("Hyxel",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        width, height, SDL_WINDOW_SHOWN);
+        size.Width, size.Height, SDL_WINDOW_SHOWN);
       
       if (_ptr == IntPtr.Zero) throw new SdlException(
         $"Couldn't create window: { SDL_GetError() }");
       
-      Size    = new Size(width, height);
+      Size    = size;
       Surface = new SdlSurface(SDL_GetWindowSurface(_ptr));
     }
     

@@ -17,13 +17,14 @@ namespace Hyxel
   {
     static async Task Main(string[] args)
     {
-      var window    = new SdlWindow(1280, 800);
+      var surfaceSize  = new Size(640, 400);
+      var pixelScaling = 3;
+      var window    = new SdlWindow(surfaceSize * pixelScaling);
       var controls  = new Controls(window);
-      var scaledown = 2;
       
       var cameraPos   = Vector4.Zero;
       var cameraRot   = Matrix4.Identity;
-      var focalLength = window.Height / 2.0f / scaledown;
+      var focalLength = window.Height / 2.0f / pixelScaling;
       
       var circles = new Hypersphere[8];
       var rnd     = new Random(1);
@@ -74,8 +75,8 @@ namespace Hyxel
         var stepRight = cameraRot * Vector4.Right;
         var stepDown  = cameraRot * Vector4.Down;
         
-        var width  = window.Width  / scaledown;
-        var height = window.Height / scaledown;
+        var width  = window.Width  / pixelScaling;
+        var height = window.Height / pixelScaling;
         
         IEnumerable<Rectangle> SplitScreen(int size)
         {
@@ -110,9 +111,9 @@ namespace Hyxel
                 var normal = circles[foundIndex].CalculateNormal(hit);
                 var color  = new Color(Math.Abs(normal.X), Math.Abs(normal.Y), Math.Abs(normal.Z));
                 
-                for (var xx = 0; xx < scaledown; xx++)
-                  for (var yy = 0; yy < scaledown; yy++)
-                    window.Surface[x*scaledown + xx, y*scaledown + yy] = color;
+                for (var xx = 0; xx < pixelScaling; xx++)
+                  for (var yy = 0; yy < pixelScaling; yy++)
+                    window.Surface[x*pixelScaling + xx, y*pixelScaling + yy] = color;
               }
             }
             ray = rayTmp;
